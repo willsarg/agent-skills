@@ -1,5 +1,5 @@
 ---
-name: model-routing
+name: claude-model-routing
 description: >-
   Use when choosing which Claude model (Opus, Sonnet, or Haiku) and effort level to run a task at,
   or which model + effort to assign a subagent you are dispatching, to get the best quality per
@@ -83,8 +83,8 @@ success usually pays for it.
   can win over Sonnet even with quality headroom; reserve Opus for async/interactive-tolerant work.
 - **Structured output / tool use:** all tiers do it; with `strict: true` + forced `tool_choice` even
   Haiku is ~97% valid JSON. **Don't escalate for JSON validity** — only for complex multi-tool chains.
-- **Embeddings:** Claude has none — route vector work off-Claude (Voyage / others). Vision is
-  tier-independent (route on difficulty).
+- **Embeddings:** Claude has no embedding model — route vector work to a dedicated embedder (see
+  references). Vision is tier-independent (route on difficulty).
 
 ## Escalate on outcomes, not vibes
 
@@ -133,9 +133,9 @@ You **can't switch your *own* main-loop model mid-session** — only recommend i
 - **Plan-aware:** hard thrift matters most when limits are binding. If they aren't, or the user wants
   quality-first, bias up — the downside of over-spending is small at current Opus pricing.
 - **Explicit user directives win.** "use opus", a `+budget` target, "keep it cheap" — follow them.
-- **Scale beyond hand-routing:** for production APIs at 100s–1000s req/day with an unpredictable task
-  mix, an automated router (OpenRouter Auto, or RouteLLM/LMSYS) can beat manual rules. For
-  interactive / low-volume work — this skill's audience — manual heuristics win (control + transparency).
+- **Scale beyond hand-routing:** at production scale (100s–1000s req/day, unpredictable task mix)
+  manual routing stops paying — an automated router fits better (see references). For interactive /
+  low-volume work, this skill's audience, hand-routing wins (control + transparency).
 
 ## Quick reference
 
