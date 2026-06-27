@@ -29,6 +29,17 @@ stale. At 1.67× Sonnet, escalate to Opus readily for non-trivial work.
 Source: <https://platform.claude.com/docs/en/about-claude/pricing> (corroborated by MetaCTO,
 SiliconData, Finout — all consistent with official).
 
+**Caching & batch math.** Cache write = 1.25× input (5-min TTL) or 2× (1-hr); cache read = 0.1×
+input. Break-even for *cached Opus input vs uncached Haiku* on a stable prefix:
+(6.25 − 0.50)/(1.00 − 0.50) = **~12 calls** (5-min), **~20** (1-hr) — confirming the skill's figure
+for the 5-min TTL. Minimum prefix to cache: **1024 tok (Opus) / 4096 (Haiku)**; below that, writes
+are charged but never hit. **Batch API** = flat 50% off input+output, async ≤24h; batch Opus
+(2.50/12.50) undercuts real-time Sonnet (3/15). Batch + cache stack → ~95% input-cost reduction (a
+RAG case study reports ~85% daily savings on Sonnet 4.6 from caching alone). Caveat: the Opus
+4.7+/Sonnet 4.6 tokenizer can emit **up to 35% more tokens** for the same text — adjust cross-tier
+and break-even estimates accordingly. Sources: pricing page (caching/batch sections) + Finout RAG
+writeup <https://www.finout.io/blog/anthropic-api-pricing>.
+
 ## 2. Capability deltas
 
 Selected current-generation benchmarks (see source links for full tables/harness notes):
@@ -114,6 +125,44 @@ Sources: FrugalGPT <https://arxiv.org/abs/2305.05176> · RouteLLM <https://arxiv
 Unified Routing+Cascading (ETH) <https://arxiv.org/abs/2410.10347> ·
 "Trust or Escalate" (ICLR 2025) judge-driven cascades · 2026 dynamic-routing survey
 <https://arxiv.org/abs/2603.04445>.
+
+## 6. Routing axes beyond cost & difficulty
+
+- **Context window:** Haiku 4.5 = **200k** cap; Sonnet 4.6 / Opus 4.8 / Fable 5 = **1M** (long-context
+  surcharge dropped Mar 2026 — no price penalty). >200k input → Haiku out; route Sonnet (not Opus for
+  length alone).
+- **Latency:** official labels Opus *Moderate* / Sonnet *Fast* / Haiku *Fastest* (~97 vs ~50 tok/s;
+  Haiku ~sub-1.5s p95 chat). Binding real-time SLA can force Haiku over Sonnet.
+- **Structured output / tool use:** all tiers support it; `strict:true` + forced `tool_choice` →
+  ~97%+ valid JSON even on Haiku (<0.2% failure). Residual tier gap is reasoning on complex chains,
+  not JSON validity — don't escalate for format.
+- **Embeddings:** Anthropic has no embedding model — use Voyage (recommended), Google, or OpenAI.
+  **Vision:** all tiers accept images; quality tracks general difficulty (no separate vision axis).
+
+Source: <https://platform.claude.com/docs/en/about-claude/models/overview> ·
+<https://platform.claude.com/docs/en/build-with-claude/structured-outputs>.
+
+## 7. Claude Code / harness levers
+
+`/model <alias>` (opus/sonnet/haiku/best/default, `opus[1m]`, **opusplan** = Opus-in-plan +
+Sonnet-in-execution). **`/advisor <model>`** pairs a stronger model Claude consults autonomously at
+decision points (experimental, Anthropic-API-only) — the built-in escalate-on-outcome. Per-subagent
+`model:` / `effort:` frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL` env override (resolution: env >
+per-invocation > frontmatter > main model; Explore subagent defaults to `haiku`). Effort: `/effort`,
+`--effort`, `CLAUDE_CODE_EFFORT_LEVEL`; `ultrathink` keyword = one-turn deep reasoning; `ultracode` =
+`xhigh` + dynamic parallel-subagent workflows; `/fast` = Opus ~2.5× faster at higher cost. **No
+built-in difficulty-based auto-routing exists** — opusplan/advisor/`fallbackModel` trigger on
+boundaries/availability, not task difficulty. Source: <https://code.claude.com/docs/en/model-config>
+· <https://code.claude.com/docs/en/sub-agents> · <https://code.claude.com/docs/en/advisor>.
+
+## 8. Automated routing (when to scale past hand-rules)
+
+Manual heuristics suit interactive / low-to-medium-volume / known-task-type work where control and
+transparency matter. Consider an automated router for production APIs at 100s–1000s+ req/day with an
+unpredictable task mix and cost-per-request as a primary KPI. Most credible: **OpenRouter Auto**
+(Not-Diamond-backed, drop-in `cost_quality_tradeoff` dial) and **RouteLLM** (LMSYS, ICLR 2025; ~85%
+cost cut at ~95% quality on MT-Bench, self-hosted/auditable). Sources:
+<https://github.com/lm-sys/routellm> · <https://openrouter.ai/docs/guides/routing/routers/auto-router>.
 
 ## Practitioner corroboration
 
