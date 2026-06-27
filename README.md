@@ -9,6 +9,7 @@ Each skill is a directory containing a `SKILL.md` (metadata + instructions) plus
 | Skill | What it covers | Use when |
 |-------|----------------|----------|
 | [windows-shell-execution](windows-shell-execution/) | Running commands on/through Windows — cmd.exe, Windows PowerShell 5.1 vs PowerShell 7+, Win32-OpenSSH, and WSL. Multi-layer quoting/parsing model, the PowerShell native-arg-passing version matrix (incl. the 7.3+ revert-to-Legacy trap), sshd `cmd /c` mechanics, host keys, CRLF, and CLIXML noise. Every load-bearing claim verified live on Windows 11. | A command that works on Linux mangles quotes/drops args on Windows, `Host key verification failed`, `/bin/bash^M: bad interpreter`, PowerShell stripping quotes from JSON, or reaching WSL over SSH. |
+| [model-routing](model-routing/) | Choosing which Claude model (Opus/Sonnet/Haiku) and effort level to run a task — or assign a subagent — for the best quality per token. The model × effort decision (raise effort before jumping a tier), routing by difficulty adjusted for stakes/reversibility, cascade/escalate-on-failure, the orchestrator + worker subagent pattern, and the cost truth that total cost = price × turns-to-correct-completion. Numbers verified 2026-06-27 against official pricing, benchmarks, and the routing literature. | Picking a model for a task, dispatching a subagent/Task/Workflow, deciding whether to escalate to Opus or drop to Haiku, or "which model should I use for this?" |
 
 ## Using these skills
 
