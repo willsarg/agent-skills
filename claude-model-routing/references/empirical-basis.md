@@ -1,7 +1,8 @@
 # Empirical basis & sources
 
 The routing rules in [`../SKILL.md`](../SKILL.md) are grounded in the data below, verified
-**2026-06-27** against official Anthropic docs, peer-reviewed papers, and independent evals. Numbers
+**2026-06-27** (Fable 5 GA + Sonnet 5 launch, re-verified **2026-07-01**) against official Anthropic docs,
+peer-reviewed papers, and independent evals. Numbers
 date; re-verify pricing and benchmarks before relying on exact figures. Each section ends with the
 working assumption we started from and the **verdict** the evidence returned.
 
@@ -11,12 +12,18 @@ Current-generation list price (USD per million tokens), from Anthropic's officia
 
 | Model | Input | Output | Cache read (hit) |
 |---|---|---|---|
+| Claude Fable 5 | $10.00 | $50.00 | $1.00 |
 | Claude Opus 4.8 | $5.00 | $25.00 | $0.50 |
-| Claude Sonnet 4.6 | $3.00 | $15.00 | $0.30 |
+| Claude Sonnet 5 | $3.00 (intro **$2.00** ≤2026-08-31) | $15.00 (intro **$10.00**) | $0.30 |
 | Claude Haiku 4.5 | $1.00 | $5.00 | $0.10 |
 
-Ratios: **Sonnet = 3× Haiku · Opus = 1.67× Sonnet = 5× Haiku · output = 5× input** (uniform across
-tiers). Batch API = flat 50% off. Prompt caching read ≈ 0.1× input.
+Ratios at standing prices: **Sonnet = 3× Haiku · Opus = 1.67× Sonnet = 5× Haiku · Fable = 2× Opus
+= 10× Haiku · output = 5× input** (uniform across tiers). During Sonnet 5's intro window
+(≤2026-08-31) Opus is temporarily **2.5×** Sonnet and Sonnet only **2×** Haiku — down-routing to
+Sonnet is extra-favorable until September. Batch API = flat 50% off. Prompt caching read ≈ 0.1×
+input. Fable extras: US-only inference at 1.1×; subscription-plan inclusion ended 2026-06-22
+(usage credits after 2026-06-23). Note the asymmetry: Opus→Fable (2×) is the *old* Opus-rationing
+ratio reborn — the "escalate readily" correction applies at Sonnet→Opus, not Opus→Fable.
 
 - Assumption "Sonnet ≈ 3× Haiku" → **CONFIRMED** (exactly 3×).
 - Assumption "Opus ≈ 5× Sonnet ≈ 19× Haiku" → **CONTRADICTED** → corrected to **1.67× Sonnet, 5×
@@ -35,9 +42,9 @@ input. Break-even for *cached Opus input vs uncached Haiku* on a stable prefix:
 for the 5-min TTL. Minimum prefix to cache: **1024 tok (Opus) / 4096 (Haiku)**; below that, writes
 are charged but never hit. **Batch API** = flat 50% off input+output, async ≤24h; batch Opus
 (2.50/12.50) undercuts real-time Sonnet (3/15). Batch + cache stack → ~95% input-cost reduction (a
-RAG case study reports ~85% daily savings on Sonnet 4.6 from caching alone). Caveat: the Opus
-4.7+/Sonnet 4.6 tokenizer can emit **up to 35% more tokens** for the same text — adjust cross-tier
-and break-even estimates accordingly. Sources: pricing page (caching/batch sections) + Finout RAG
+RAG case study reports ~85% daily savings on Sonnet 4.6 from caching alone). Caveat: the updated
+tokenizer (Opus 4.7+, Sonnet 4.6, Sonnet 5, Fable 5) can emit **up to ~35% more tokens** (1.0–1.35×,
+content-dependent) for the same text — adjust cross-tier and break-even estimates accordingly. Sources: pricing page (caching/batch sections) + Finout RAG
 writeup <https://www.finout.io/blog/anthropic-api-pricing>.
 
 ## 2. Capability deltas
@@ -55,9 +62,15 @@ Selected current-generation benchmarks (see source links for full tables/harness
 - "Sonnet ≈ Opus on straightforward coding" → **CONFIRMED, and directionally reversed:** on
   HumanEval-class/algorithmic coding Sonnet **matches or beats** Opus (Sonnet 4.5 97.6% > Opus 4.5
   90.2%). Sonnet is the better *default* there, not a close second.
-- "Opus advantage widens on complex/multi-file/architectural/agentic" → **CONFIRMED:** Opus 4.8 leads
-  Sonnet 4.6 by ~9pp on SWE-bench and leads on Terminal-bench/GPQA/tau-bench/Vending-Bench. (Note: at
-  the 4.6 generation the SWE-bench gap briefly narrowed to ~1.2pp; Opus 4.8 reopened it.)
+- "Opus advantage widens on complex/multi-file/architectural/agentic" → **CONFIRMED, with a new
+  carve-out:** Opus 4.8 leads Sonnet 4.6 by ~9pp on SWE-bench and leads on GPQA/tau-bench/
+  Vending-Bench. (Note: at the 4.6 generation the SWE-bench gap briefly narrowed to ~1.2pp; Opus
+  4.8 reopened it.) **Sonnet 5** (released 2026-06-30, `claude-sonnet-5` — "the most agentic Sonnet")
+  narrows it again: 63.2% vs Opus 4.8's 69.2% on SWE-bench *Pro* (~6pp), 81.2% vs 83.4% on
+  OSWorld-Verified, and **beats Opus 4.8 on Terminal-Bench 2.1 (80.4% vs 74.6%)** — the first Sonnet
+  to take an agentic benchmark off Opus. Routing consequence: bounded terminal/computer-use *execution*
+  is now Sonnet territory too; Opus's remaining edge is architecture, hard reasoning, and long-horizon
+  judgment.
 - "Haiku materially weaker on multi-step, competitive on simple" → **CONFIRMED:** HumanEval 85 vs
   Sonnet 98 (12pp), but GSM8K within ~2pp. Haiku 4.5 ≈ *base* Sonnet 4 (May 2025), since surpassed.
 
@@ -66,9 +79,13 @@ Vellum Opus 4.5/4.7 benchmarks <https://www.vellum.ai/blog/claude-opus-4-5-bench
 Artificial Analysis <https://artificialanalysis.ai/models/claude-4-5-haiku> ·
 Morphllm <https://www.morphllm.com/claude-benchmarks>.
 
-> Tiers above Opus — **Fable 5** (95.0% SWE-bench) and **Mythos 5** — exist (`claude-fable-5`,
-> `claude-mythos-5`) but were export-control-suspended ~2026-06-12, restoration ~2026-07-01. Out of
-> scope for this skill (Opus/Sonnet/Haiku trio); revisit if they return.
+> **Fable 5** (95.0% SWE-bench, `claude-fable-5`) is **GA as of ~2026-07-01** — the mid-June
+> export-control suspension is lifted. Now in scope as the ceiling tier: ~6.4pp over Opus 4.8 on
+> SWE-bench at 2× the price, with the gap widest on frontier-ambiguous/long-horizon agentic work.
+> 1M context; effort supported through `xhigh`/`max`; thinking cannot be disabled. **Mythos 5**
+> (`claude-mythos-5`) is the same underlying model minus the dual-use safety measures,
+> approved-organizations only — not routable from a normal harness.
+> Source: <https://www.anthropic.com/news/claude-fable-5-mythos-5>.
 
 ## 3. Effort as a lever
 
@@ -144,7 +161,7 @@ Source: <https://platform.claude.com/docs/en/about-claude/models/overview> ·
 
 ## 7. Claude Code / harness levers
 
-`/model <alias>` (opus/sonnet/haiku/best/default, `opus[1m]`, **opusplan** = Opus-in-plan +
+`/model <alias>` (fable/opus/sonnet/haiku/best/default, `opus[1m]`, **opusplan** = Opus-in-plan +
 Sonnet-in-execution). **`/advisor <model>`** pairs a stronger model Claude consults autonomously at
 decision points (experimental, Anthropic-API-only) — the built-in escalate-on-outcome. Per-subagent
 `model:` / `effort:` frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL` env override (resolution: env >

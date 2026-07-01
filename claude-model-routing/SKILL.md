@@ -1,7 +1,7 @@
 ---
 name: claude-model-routing
 description: >-
-  Use when choosing which Claude model (Opus, Sonnet, or Haiku) and effort level to run a task at,
+  Use when choosing which Claude model (Fable, Opus, Sonnet, or Haiku) and effort level to run a task at,
   or which model + effort to assign a subagent you are dispatching, to get the best quality per
   token. Covers the model × effort decision (raise effort before jumping a tier), routing by task
   difficulty adjusted by stakes/reversibility plus context-length and latency, the cascade /
@@ -12,10 +12,11 @@ description: >-
   to Opus or drop to Haiku, or "which model should I use for this?"
 ---
 
-# Model Routing (Claude Opus / Sonnet / Haiku × effort)
+# Model Routing (Claude Fable / Opus / Sonnet / Haiku × effort)
 
 Match each task to the cheapest configuration that clears its quality bar — **without** wasting
-tokens *or* sacrificing first-pass success. Numbers are current-generation (verified 2026-06-27, see
+tokens *or* sacrificing first-pass success. Numbers are current-generation (verified 2026-06-27;
+Fable 5 GA + Sonnet 5 launch pricing verified 2026-07-01, see
 [references/empirical-basis.md](references/empirical-basis.md)); the *framework* outlives any one
 price change. The platform has **no built-in difficulty-based auto-routing** — that gap is what these
 heuristics fill.
@@ -24,10 +25,12 @@ heuristics fill.
 > ~1.67× Sonnet** (not the 5–19× the older blogs assume), while still meaningfully stronger on hard
 > work. So the real thrift lever is **Haiku-vs-Sonnet**, and you should **escalate to Opus readily**
 > when the work is non-trivial. Rationing Opus is optimizing a cost that no longer exists.
+> (Sonnet 5's intro pricing — $2/$10 through 2026-08-31 — temporarily stretches Opus to 2.5×
+> Sonnet; still nowhere near the old 5×, but down-routing to Sonnet is extra-cheap until then.)
 
 ## Two knobs, in this order
 
-Route on **tier** (Haiku → Sonnet → Opus) *and* **effort** (`low` → `medium` → `high` (default) →
+Route on **tier** (Haiku → Sonnet → Opus → Fable) *and* **effort** (`low` → `medium` → `high` (default) →
 `xhigh` → `max`). Apply in order:
 
 1. **Difficulty** sets the tier band (mechanical / routine / hard).
@@ -64,16 +67,18 @@ success the dominant lever**. Consequences:
 | Tier | Route here for | Avoid when | USD/M in·out |
 |------|----------------|------------|--------------|
 | **Haiku** | Mechanical, single-step, high-volume: extraction, classification, summarization, grep/glue, batch edits/renames, tight test-run/fix-imports loops (it doesn't overthink). The genuine thrift lever. | Anything needing multi-step reasoning/judgment (materially weaker — SWE-bench ~73 vs Sonnet ~80, Opus ~89); **or input may exceed its 200k context cap** (Sonnet/Opus are 1M). | 1 · 5 |
-| **Sonnet** | **Default (~80–90% of work).** Bounded implementation, executing a plan, trivial/algorithmic coding (it *matches or beats* Opus there), everyday edits, RAG, docs, long-context (1M). | The task is open-ended, architectural, long-horizon agentic, or hard-reasoning — escalate. | 3 · 15 |
+| **Sonnet** | **Default (~80–90% of work).** Bounded implementation, executing a plan, trivial/algorithmic coding (it *matches or beats* Opus there), everyday edits, RAG, docs, long-context (1M). Sonnet 5 (2026-06-30) extends the "matches or beats" zone to terminal/computer-use agentic execution (beats Opus 4.8 on Terminal-Bench 2.1). | The task is open-ended, architectural, long-horizon agentic, or hard-reasoning — escalate. | 3 · 15 (intro **2 · 10** ≤2026-08-31) |
 | **Opus** | **Escalate readily (only 1.67× Sonnet):** substantive/multi-file/architectural coding, long-horizon agentic, hard reasoning (GPQA/ARC-class), ambiguous/open-ended problems, irreversible / high-stakes decisions, and **orchestrator / judge** roles. | Genuinely mechanical work (use Haiku); `max` effort can overthink. | 5 · 25 |
+| **Fable** | **The ceiling — route *from* it, rarely *to* it.** Frontier-ambiguous or failure-costly work where the judgment *is* the deliverable: architecture verdicts, security decisions, week-long agentic runs, judge-of-last-resort when Opus verdicts conflict. | Anything with a deterministic verifier (tests, schema, gate) — Opus/Sonnet suffice. The "escalate readily" logic does **not** extend up by default: Fable = 2× Opus, the old rationing math Opus escaped. Thinking can't be disabled — avoid for pure structured output. | 10 · 50 |
 
 Rule of thumb: **difficulty picks the row; stakes/reversibility/context/latency can push it.** When
 unsure between two rows and the work isn't trivially mechanical, pick the higher one — first-pass
-success usually pays for it.
+success usually pays for it. (That tiebreak covers Haiku↔Sonnet↔Opus; escalating Opus→Fable needs a
+positive reason — irrecoverable stakes or genuine ambiguity — not just doubt.)
 
-> Above Opus sit **Fable 5 / Mythos 5** (~2× Opus) for the most demanding week-long, ambiguous, or
-> failure-costly agentic work — out of this skill's trio scope by design, and availability may be
-> gated. Their thinking can't be disabled, so don't route them at deterministic structured output.
+> **Fable 5 is GA** (back from the mid-2026 export-control suspension) at `claude-fable-5`, $10/$50,
+> 1M context, standard 90% cache-read discount. **Mythos 5** is the same underlying model without
+> the dual-use safety measures, restricted to approved orgs — treat it as non-routable.
 
 ## Axes that can override the difficulty pick
 
@@ -109,6 +114,11 @@ Anthropic's own production pattern (an Opus lead + Sonnet workers beat solo-Opus
   narrow (≈5) and only fan out when the task's value justifies it.
 - **Auto-route and state it in one line** — *"dispatching on Haiku/low — mechanical extract,
   recoverable; will escalate if it stalls."* No need to ask; the user can override.
+- **When the main loop IS Fable, the delegation threshold drops.** Every main-loop token costs 2×
+  Opus, so keep only what needs the ceiling — boundaries, verdicts, security/architecture decisions —
+  and push everything with a mechanical core and a deterministic verifier down-tier. Opus becomes the
+  routable judge tier; routing a subagent *to* `fable` is reserved for verdicts you'd otherwise have
+  to make yourself but want out-of-context (e.g. a fork for a long adversarial review).
 
 ## Pulling the levers in Claude Code
 
@@ -117,10 +127,10 @@ boundaries/availability, *not* task difficulty) — apply these heuristics by ha
 
 | Intent | Lever |
 |--------|-------|
-| Switch model now | `/model opus\|sonnet\|haiku` |
+| Switch model now | `/model fable\|opus\|sonnet\|haiku` |
 | Plan on Opus, execute on Sonnet | `/model opusplan` (built-in plan/execute split) |
 | Consult a stronger model at decision points | `/advisor opus` (built-in escalate-on-outcome) |
-| Route a subagent's tier / effort | its `model:` / `effort:` frontmatter (or `CLAUDE_CODE_SUBAGENT_MODEL`) |
+| Route a subagent's tier / effort | its `model:` / `effort:` frontmatter (or `CLAUDE_CODE_SUBAGENT_MODEL`); Agent tool accepts `fable` |
 | Deeper reasoning, one turn only | put `ultrathink` in the prompt |
 | Lower Opus latency (higher cost) | `/fast` |
 | Survive overload automatically | `"fallbackModel": ["sonnet"]` |
@@ -143,12 +153,14 @@ You **can't switch your *own* main-loop model mid-session** — only recommend i
 difficulty → tier band   │ bump up for...                    │ effort → raise before tier
 ─────────────────────────┼──────────────────────────────────┼───────────────────────────
 mechanical    → Haiku     │ irreversible / high-stakes         │ low / medium / high(default)
-routine       → Sonnet    │ >200k context (→ Sonnet, not Opus) │ xhigh  (Opus 4.7+, not Sonnet)
+routine       → Sonnet    │ >200k context (→ Sonnet, not Opus) │ xhigh  (Opus 4.7+ & Fable, not Sonnet)
 hard/agentic  → Opus      │ (latency SLA → DOWN to Haiku)      │ max    (Sonnet+Opus; can overthink)
-                          │                                   │ Haiku: no effort param (budget_tokens)
+frontier-ambiguous/       │ Opus→Fable needs a POSITIVE reason │ Haiku: no effort param (budget_tokens)
+ failure-costly → Fable   │ (2× Opus — not "when in doubt")    │ Fable: thinking can't be disabled
 total cost = price × turns-to-correct-completion → favor first-pass success → escalate when in doubt
 escalate on OUTCOME (failed/stuck/wandering), never on self-confidence
-subagents: orchestrate-on-Opus, scoped workers on Haiku/Sonnet, minimal-context (prompt-only), fan ≤5
+subagents: orchestrate/judge on the top tier you're on, scoped workers on Haiku/Sonnet, Opus judges,
+ minimal-context (prompt-only), fan ≤5; on Fable route FROM it — keep only boundaries and verdicts
 levers: /model · opusplan · /advisor · subagent model:/effort: · ultrathink · /fast
 caching/batch: stable prefix or async? a higher tier can be the cheaper run
 ```
