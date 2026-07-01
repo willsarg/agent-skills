@@ -40,7 +40,7 @@ Route on **tier** (Haiku → Sonnet → Opus → Fable) *and* **effort** (`low` 
 3. **Raise effort before jumping a tier** — officially the cheaper lever ("tuning effort is often a
    better lever than switching models"). Caveats that bite: **Haiku has no `effort` param** (it does
    light reasoning via `budget_tokens`, but you can't effort-ramp it — Haiku→Sonnet is a tier jump);
-   **`xhigh` needs Opus 4.7+** (Sonnet has no `xhigh`); **`max` exists on Sonnet & Opus but can
+   **`xhigh` needs Opus 4.7+, Sonnet 5, or Fable** (Sonnet ≤4.6 tops out at `max`); **`max` exists on Sonnet & Opus but can
    *overthink*** and hurt structured-output tasks — not monotonically better. Sonnet defaults to
    `high`; drop to `medium` for routine work to avoid latency surprises.
 
@@ -67,7 +67,7 @@ success the dominant lever**. Consequences:
 | Tier | Route here for | Avoid when | USD/M in·out |
 |------|----------------|------------|--------------|
 | **Haiku** | Mechanical, single-step, high-volume: extraction, classification, summarization, grep/glue, batch edits/renames, tight test-run/fix-imports loops (it doesn't overthink). The genuine thrift lever. | Anything needing multi-step reasoning/judgment (materially weaker — SWE-bench ~73 vs Sonnet ~80, Opus ~89); **or input may exceed its 200k context cap** (Sonnet/Opus are 1M). | 1 · 5 |
-| **Sonnet** | **Default (~80–90% of work).** Bounded implementation, executing a plan, trivial/algorithmic coding (it *matches or beats* Opus there), everyday edits, RAG, docs, long-context (1M). Sonnet 5 (2026-06-30) extends the "matches or beats" zone to terminal/computer-use agentic execution (beats Opus 4.8 on Terminal-Bench 2.1). | The task is open-ended, architectural, long-horizon agentic, or hard-reasoning — escalate. | 3 · 15 (intro **2 · 10** ≤2026-08-31) |
+| **Sonnet** | **Default (~80–90% of work).** Bounded implementation, executing a plan, trivial/algorithmic coding (it *matches or beats* Opus there), everyday edits, RAG, docs, long-context (1M). Sonnet 5 (2026-06-30) extends the "matches or beats" zone to terminal-agentic execution (Terminal-Bench 2.1 parity-class with Opus 4.8 — see references). | The task is open-ended, architectural, long-horizon agentic, or hard-reasoning — escalate. | 3 · 15 (intro **2 · 10** ≤2026-08-31) |
 | **Opus** | **Escalate readily (only 1.67× Sonnet):** substantive/multi-file/architectural coding, long-horizon agentic, hard reasoning (GPQA/ARC-class), ambiguous/open-ended problems, irreversible / high-stakes decisions, and **orchestrator / judge** roles. | Genuinely mechanical work (use Haiku); `max` effort can overthink. | 5 · 25 |
 | **Fable** | **The ceiling — route *from* it, rarely *to* it.** Frontier-ambiguous or failure-costly work where the judgment *is* the deliverable: architecture verdicts, security decisions, week-long agentic runs, judge-of-last-resort when Opus verdicts conflict. | Anything with a deterministic verifier (tests, schema, gate) — Opus/Sonnet suffice. The "escalate readily" logic does **not** extend up by default: Fable = 2× Opus, the old rationing math Opus escaped. Thinking can't be disabled — avoid for pure structured output. | 10 · 50 |
 
@@ -153,7 +153,7 @@ You **can't switch your *own* main-loop model mid-session** — only recommend i
 difficulty → tier band   │ bump up for...                    │ effort → raise before tier
 ─────────────────────────┼──────────────────────────────────┼───────────────────────────
 mechanical    → Haiku     │ irreversible / high-stakes         │ low / medium / high(default)
-routine       → Sonnet    │ >200k context (→ Sonnet, not Opus) │ xhigh  (Opus 4.7+ & Fable, not Sonnet)
+routine       → Sonnet    │ >200k context (→ Sonnet, not Opus) │ xhigh  (Opus 4.7+, Sonnet 5, Fable)
 hard/agentic  → Opus      │ (latency SLA → DOWN to Haiku)      │ max    (Sonnet+Opus; can overthink)
 frontier-ambiguous/       │ Opus→Fable needs a POSITIVE reason │ Haiku: no effort param (budget_tokens)
  failure-costly → Fable   │ (2× Opus — not "when in doubt")    │ Fable: thinking can't be disabled

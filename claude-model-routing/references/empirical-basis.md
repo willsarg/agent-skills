@@ -14,7 +14,7 @@ Current-generation list price (USD per million tokens), from Anthropic's officia
 |---|---|---|---|
 | Claude Fable 5 | $10.00 | $50.00 | $1.00 |
 | Claude Opus 4.8 | $5.00 | $25.00 | $0.50 |
-| Claude Sonnet 5 | $3.00 (intro **$2.00** ≤2026-08-31) | $15.00 (intro **$10.00**) | $0.30 |
+| Claude Sonnet 5 | $3.00 (intro **$2.00** ≤2026-08-31) | $15.00 (intro **$10.00**) | $0.30 (intro **$0.20**) |
 | Claude Haiku 4.5 | $1.00 | $5.00 | $0.10 |
 
 Ratios at standing prices: **Sonnet = 3× Haiku · Opus = 1.67× Sonnet = 5× Haiku · Fable = 2× Opus
@@ -22,7 +22,8 @@ Ratios at standing prices: **Sonnet = 3× Haiku · Opus = 1.67× Sonnet = 5× Ha
 (≤2026-08-31) Opus is temporarily **2.5×** Sonnet and Sonnet only **2×** Haiku — down-routing to
 Sonnet is extra-favorable until September. Batch API = flat 50% off. Prompt caching read ≈ 0.1×
 input. Fable extras: US-only inference at 1.1×; subscription-plan inclusion ended 2026-06-22
-(usage credits after 2026-06-23). Note the asymmetry: Opus→Fable (2×) is the *old* Opus-rationing
+(usage credits from 2026-06-23, except a partial free re-access window 2026-07-01→07 at 50% of
+weekly limits — <https://www.anthropic.com/news/redeploying-fable-5>). Note the asymmetry: Opus→Fable (2×) is the *old* Opus-rationing
 ratio reborn — the "escalate readily" correction applies at Sonnet→Opus, not Opus→Fable.
 
 - Assumption "Sonnet ≈ 3× Haiku" → **CONFIRMED** (exactly 3×).
@@ -65,12 +66,15 @@ Selected current-generation benchmarks (see source links for full tables/harness
 - "Opus advantage widens on complex/multi-file/architectural/agentic" → **CONFIRMED, with a new
   carve-out:** Opus 4.8 leads Sonnet 4.6 by ~9pp on SWE-bench and leads on GPQA/tau-bench/
   Vending-Bench. (Note: at the 4.6 generation the SWE-bench gap briefly narrowed to ~1.2pp; Opus
-  4.8 reopened it.) **Sonnet 5** (released 2026-06-30, `claude-sonnet-5` — "the most agentic Sonnet")
-  narrows it again: 63.2% vs Opus 4.8's 69.2% on SWE-bench *Pro* (~6pp), 81.2% vs 83.4% on
-  OSWorld-Verified, and **beats Opus 4.8 on Terminal-Bench 2.1 (80.4% vs 74.6%)** — the first Sonnet
-  to take an agentic benchmark off Opus. Routing consequence: bounded terminal/computer-use *execution*
-  is now Sonnet territory too; Opus's remaining edge is architecture, hard reasoning, and long-horizon
-  judgment.
+  4.8 reopened it.) **Sonnet 5** (released 2026-06-30, `claude-sonnet-5` — "the most agentic Sonnet
+  model yet") narrows it again: 63.2% vs Opus 4.8's 69.2% on SWE-bench *Pro* (~6pp), 81.2% vs 83.4%
+  on OSWorld, and **parity-class on Terminal-Bench 2.1**: Sonnet 5 scores 80.4% vs Opus 4.8's 74.6%
+  (per the Opus 4.8 system card) — but Anthropic's Fable page lists Opus 4.8 at 82.7% under a
+  different config, so treat it as parity, not a clean win. Routing consequence stands either way:
+  at 2.5–5× cheaper, parity means bounded terminal/computer-use *execution* is Sonnet territory;
+  Opus's remaining edge is architecture, hard reasoning, and long-horizon judgment. (Benchmarks
+  cross-referenced from the Sonnet 5 and Opus 4.8 system cards — the Sonnet 5 card itself compares
+  only against Sonnet 4.6/GPT-5.5/Gemini.)
 - "Haiku materially weaker on multi-step, competitive on simple" → **CONFIRMED:** HumanEval 85 vs
   Sonnet 98 (12pp), but GSM8K within ~2pp. Haiku 4.5 ≈ *base* Sonnet 4 (May 2025), since surpassed.
 
@@ -79,13 +83,17 @@ Vellum Opus 4.5/4.7 benchmarks <https://www.vellum.ai/blog/claude-opus-4-5-bench
 Artificial Analysis <https://artificialanalysis.ai/models/claude-4-5-haiku> ·
 Morphllm <https://www.morphllm.com/claude-benchmarks>.
 
-> **Fable 5** (95.0% SWE-bench, `claude-fable-5`) is **GA as of ~2026-07-01** — the mid-June
-> export-control suspension is lifted. Now in scope as the ceiling tier: ~6.4pp over Opus 4.8 on
-> SWE-bench at 2× the price, with the gap widest on frontier-ambiguous/long-horizon agentic work.
-> 1M context; effort supported through `xhigh`/`max`; thinking cannot be disabled. **Mythos 5**
-> (`claude-mythos-5`) is the same underlying model minus the dual-use safety measures,
+> **Fable 5** (`claude-fable-5`) is **GA as of 2026-07-01** — the Jun-12 export-control suspension
+> is lifted (<https://www.anthropic.com/news/fable-mythos-access>). Now in scope as the ceiling
+> tier. Anthropic's own benchmark table does **not** publish SWE-bench for Fable (the widely-blogged
+> "95.0% SWE-bench" appears only on aggregator sites — treat as unverified); the primary-source
+> gaps over Opus 4.8 are **FrontierCode (Diamond) 29.3% vs 13.4%** (at `xhigh`; more than double)
+> and **Terminal-Bench 2.1 88.0% vs 82.7%**, i.e. widest on frontier-ambiguous/long-horizon agentic
+> work. 1M context; effort through `xhigh`/`max`; `thinking: {"type": "disabled"}` not supported.
+> **Mythos 5** (`claude-mythos-5`) shares Fable 5's capabilities without the safety classifiers,
 > approved-organizations only — not routable from a normal harness.
-> Source: <https://www.anthropic.com/news/claude-fable-5-mythos-5>.
+> Sources: <https://www.anthropic.com/claude/fable> ·
+> <https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5>.
 
 ## 3. Effort as a lever
 
@@ -93,7 +101,9 @@ Levels (API `output_config.effort`): `low` / `medium` / `high` (default) / `xhig
 
 - **Haiku 4.5 has no effort parameter** (legacy `budget_tokens` only) — so the Haiku→Sonnet boundary
   is tier-only, no effort ramp.
-- **`xhigh` is Opus-only** (+ Fable/Mythos); Sonnet tops out at `max`.
+- **`xhigh` needs Opus 4.7+, Sonnet 5, or Fable/Mythos** (per the effort docs' availability list);
+  Sonnet ≤4.6 tops out at `max`. Sonnet 5 gaining `xhigh` extends "raise effort before jumping a
+  tier" to the Sonnet→Opus boundary.
 - **`max` is not monotonically better** — docs warn it causes "overthinking" and can degrade
   structured-output tasks. Start Opus coding/agentic at `xhigh`, reserve `max` for frontier problems.
 
