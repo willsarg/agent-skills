@@ -155,9 +155,10 @@ Unified Routing+Cascading (ETH) <https://arxiv.org/abs/2410.10347> ·
 
 ## 6. Routing axes beyond cost & difficulty
 
-- **Context window:** Haiku 4.5 = **200k** cap; Sonnet 4.6 / Opus 4.8 / Fable 5 = **1M** (long-context
-  surcharge dropped Mar 2026 — no price penalty). >200k input → Haiku out; route Sonnet (not Opus for
-  length alone).
+- **Context window:** Haiku 4.5 = **200k** cap; Sonnet 5 (and 4.6) / Opus 4.8 / Fable 5 = **1M**
+  (long-context surcharge dropped Mar 2026 — no price penalty; Sonnet 5's 1M confirmed in the
+  models overview at launch). >200k input → Haiku out; route Sonnet (not Opus for length alone) —
+  at Sonnet 5 intro pricing, doubly so.
 - **Latency:** official labels Opus *Moderate* / Sonnet *Fast* / Haiku *Fastest* (~97 vs ~50 tok/s;
   Haiku ~sub-1.5s p95 chat). Binding real-time SLA can force Haiku over Sonnet.
 - **Structured output / tool use:** all tiers support it; `strict:true` + forced `tool_choice` →
