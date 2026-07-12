@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Model Routing"
+  short_description: "Route Codex models by verified task economics"
+  default_prompt: "Use $codex-model-routing to choose the Codex model and reasoning effort for this task."
