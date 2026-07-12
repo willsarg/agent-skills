@@ -20,6 +20,9 @@ outlive individual model releases.
 - [Codex token-based credit rate card](https://help.openai.com/en/articles/20001106-codex-rate-card-2)
 - [GPT-5.6 Luna model pricing and long-context rules](https://developers.openai.com/api/docs/models/gpt-5.6-luna)
 - [GPT-5.6 Terra model pricing](https://developers.openai.com/api/docs/models/gpt-5.6-terra)
+- [Codex models and effort guidance](https://learn.chatgpt.com/docs/models)
+- [Codex subagents and custom-agent configuration](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+- [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 
 ## Independent benchmark sources
 
@@ -48,13 +51,15 @@ OpenAI introduced Sol, Terra, and Luna as durable capability tiers that may adva
 cadences. The version number identifies the generation. This resembles other vendors' tier naming,
 but OpenAI does not claim a one-to-one mapping to Haiku, Sonnet, Opus, or Fable.
 
-All GPT-5.6 tiers support `none`, `low`, `medium`, `high`, `xhigh`, and `max`. In Codex, eligible paid
-plans can select Sol, Terra, and Luna; Free and Go receive Terra. `max` is available in Codex, while
-`ultra` is available on Plus and higher. GPT-5.6 requires at least Codex CLI 0.144.0 or desktop app
+GPT-5.6 tiers support effort through `max` on model/API surfaces. Current Codex config documentation
+lists `minimal`, `low`, `medium`, `high`, and `xhigh` for `model_reasoning_effort`; treat Max and Ultra
+as app-level modes unless the config schema changes. Eligible paid Codex plans can select Sol, Terra,
+and Luna; Free and Go receive Terra. GPT-5.6 requires at least Codex CLI 0.144.0 or desktop app
 26.707.30751 according to the Help Center at verification time.
 
-`ultra` coordinates four agents by default. OpenAI also reports 16-agent evaluation configurations.
-Multi-agent cost includes all agents' tokens, while latency is measured from the root agent.
+Ultra uses subagents for parallelizable complex work; OpenAI says most tasks do not need Max or
+Ultra. The current official subagent/model pages do not establish a fixed default agent count or a
+task-level Ultra cost/quality frontier, so this skill does not route to it.
 
 ## Pricing
 
@@ -208,6 +213,28 @@ routinely raising Mini to `xhigh`.
 | GPT-5.3-Codex | Codex code review currently uses it; that product choice is not a universal local-work default. |
 | GPT-5.3-Codex-Spark | Research preview for rapid focused iteration; credit rates are not final. |
 | GPT-5.5 Cyber | Trusted Access/Daybreak only; four times GPT-5.5's Codex credit rates and intended for advanced authorized cyber work. |
+
+## Local native-routing probe (exploratory)
+
+On Codex CLI 0.144.1 on 2026-07-12:
+
+- With global `gpt-5.6-sol` / `high` pins, a trivial read-only inventory child inherited Sol/high and
+  had no assigned role.
+- After removing those pins, fresh `codex exec` roots selected `gpt-5.5`; three read-only delegated
+  tasks were assigned the built-in `explorer` role at `gpt-5.5` / `medium`.
+- Permission/task wording affected role selection: an implementation proposal and a risk review were
+  both routed as explorers because both were explicitly read-only inspections.
+- A forward test of this skill left a bounded packaging inventory unpinned and launched exactly one
+  depth-one explorer. Session metadata showed `gpt-5.5` for the root and `gpt-5.5` / `medium` for the
+  explorer, despite the response describing Luna low as the suitable economic tier. Recommendations
+  must therefore not be reported as observed routes without metadata confirmation.
+- That forward test reported 797,619 input tokens, 704,000 cached. The session carried a very large
+  global skill/plugin and project-instruction context, so reducing always-on context is a separate
+  cost lever from model selection or subagent count.
+
+This is local exploratory evidence, not a model-quality benchmark. It supports leaving subagents
+unpinned first, inspecting session metadata, and adding custom pinned agents only for repeatable
+misrouting.
 
 ## Maintenance rules
 

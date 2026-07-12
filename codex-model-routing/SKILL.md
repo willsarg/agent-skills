@@ -5,7 +5,8 @@ description: >-
   Codex subagents, to minimize expected cost to correct verified completion. Covers GPT-5.6 Sol,
   Terra, and Luna across none through max effort; Codex coding-agent and general-task cost-per-task
   evidence; the GPT-5.4 Mini bounded-worker lane; stakes, reversibility, verification, context,
-  latency, caching, escalation, conditional models, and guarded ultra multi-agent use. Triggers when asked which Codex model or
+  latency, caching, escalation, conditional models, native subagent routing, and evidence-based
+  overrides. Triggers when asked which Codex model or
   effort to use, whether to escalate or down-route, how to assign a Codex worker, or how to control
   Codex model-routing cost.
 ---
@@ -37,6 +38,21 @@ rate card when availability or pricing affects the decision.
    access can change the pick.
 6. **Escalate on outcomes.** Failed verification, repeated correction, wandering, or context loss
    justify escalation. Model self-confidence does not.
+
+## Prefer native Codex routing
+
+For subagents, describe the task shape, permissions, verifier, and expected output precisely, then
+leave model and effort unpinned by default. Codex can assign a built-in role and select a suitable
+configuration. Treat the matrix below as an audit and override tool, not a replacement router.
+
+Pin a subagent model or create a custom agent only when stakes require a known route, latency is a
+hard constraint, or repeated session evidence shows a stable native misroute. Custom agents live in
+`~/.codex/agents/` globally or `.codex/agents/` per trusted project; omitted model/effort fields can
+inherit the parent. Verify named-agent selection in a fresh task before claiming a pin is enforced.
+
+Keep recommendations and observations separate. An unpinned task may be *suitable for* Luna low or
+Mini medium without actually running either route. Claim the model, effort, or role Codex used only
+after checking session metadata; otherwise say the route was left native and unpinned.
 
 ## Configuration frontier
 
@@ -125,7 +141,10 @@ workload-specific reason.
 
 ## Pick effort by marginal return
 
-All three GPT-5.6 tiers support `none`, `low`, `medium`, `high`, `xhigh`, and `max`.
+GPT-5.6 model/API surfaces support effort through `max`, but Codex configuration is
+surface-specific: current `model_reasoning_effort` config documents `minimal`, `low`, `medium`,
+`high`, and `xhigh`. Max and Ultra are app modes; do not write them into custom-agent TOML without
+current config-schema evidence.
 
 - Use **`none`** for direct, latency-sensitive work with strong verification.
 - Use **`low`** for simple, recoverable tasks that need light reasoning.
@@ -168,24 +187,19 @@ Model routing never grants delegation authority.
 
 - Only the root orchestrator may spawn subagents by default.
 - Put `Do not spawn subagents` in every worker prompt.
-- Allow at most **four total subagent launches per user request**.
-- Require explicit user authorization for nested delegation.
-- Before another worker wave, count all launches and confirm earlier workers produced useful work.
+- Keep Codex's default nesting depth of one unless the user explicitly authorizes recursive
+  delegation.
+- Before another worker wave, confirm earlier workers produced useful results and that the next
+  tasks are independent.
 - Stop the subtree and report any unexpected recursive spawning.
 - Never infer delegation permission from "parallelize," "do not stop," or a high-end model choice.
 
 ### `ultra`
 
-`ultra` is multi-agent orchestration, not an ordinary effort level.
-
-- Never select `ultra` automatically.
-- Require explicit user authorization for the specific task.
-- Use only its default four-agent configuration.
-- Treat those four agents as the entire request allowance: launch no additional root or nested
-  workers.
-- Prohibit 16-agent or otherwise expanded configurations.
-
-Use `max` as the normal single-agent ceiling.
+Ultra is an app-level multi-agent mode that uses subagents for separable complex work. Current
+cost-to-correct evidence in this skill does not measure it, and OpenAI says most tasks do not need
+Max or Ultra. Do not route to Ultra automatically or invent a fixed agent count. Treat it only as an
+explicit user-selected experiment until task-level quality, token, and latency evidence exists.
 
 ## GPT-5.4 Mini worker lane
 
@@ -223,7 +237,8 @@ runtime/token bound   → compare Terra medium/high/xhigh
 bridge below Sol      → Terra max
 ambiguous/high stakes → Sol high/xhigh/max
 quality ceiling       → Sol max
-multi-agent ultra     → explicit opt-in only; exactly 4 agents; no other workers
+subagents              → native routing first; pin only for stakes or demonstrated misrouting
+multi-agent ultra      → outside the evidence-backed router; explicit experiment only
 
 escalate on failed verification, repeated correction, wandering, or context loss
 never escalate on self-reported confidence
