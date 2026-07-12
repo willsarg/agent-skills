@@ -27,6 +27,20 @@ outlive individual model releases.
 - [Artificial Analysis Codex model-variant matrix](https://artificialanalysis.ai/agents/coding-agents/comparisons/codex-vs-cursor-cli)
 - [Artificial Analysis Intelligence Index model catalog](https://artificialanalysis.ai/providers/openai)
 - [Artificial Analysis cache-price table](https://artificialanalysis.ai/models/caching)
+- [JetBrains Codex repository-task evaluation](https://blog.jetbrains.com/ai/2026/06/codex-is-now-the-recommended-agent-in-jetbrains-ai/)
+- [ProgramBench extended results](https://programbench.com/extended/)
+
+## Evidence priority
+
+1. Use task-relevant independent benchmarks with disclosed harness, effort, cost, and completion
+   treatment.
+2. Use Artificial Analysis configuration-level cost, runtime, token, and quality measurements.
+3. Use official OpenAI evaluations for product capabilities and cross-generation evidence, while
+   accounting for vendor selection.
+4. Use multiple corroborating real-world evaluations when controlled benchmarks do not represent
+   the workload.
+5. Treat local or personal benchmark suites as exploratory or "fun" evidence only. They may suggest
+   hypotheses but cannot establish a default route.
 
 ## Product facts
 
@@ -111,6 +125,22 @@ published token prices. Treat the cost cells as defective/unavailable, not measu
   used more turns/tokens while scoring worse.
 - Sol's missing cost cells prevent a complete coding-cost Pareto calculation below `max`.
 
+### Configuration-level routing implications
+
+| Comparison | Measured result | Default implication |
+|---|---|---|
+| Luna `low` vs Luna `none` | 42 at $0.21 vs 37 at $0.35 | Skip Luna `none` for ordinary coding. |
+| Luna `medium` vs Terra `low` | 59 at $0.47 vs 54 at $0.48 | Prefer Luna `medium`. |
+| Luna `high` vs Terra `medium` | 68 at $0.96 vs 64 at $0.90 | Prefer Luna for quality; Terra for lower tokens/runtime. |
+| Luna `xhigh` vs Terra `high` | 71 at $1.26 vs 72 at $1.59 | Luna is the value route; Terra is slightly faster. |
+| Luna `max` vs Terra `xhigh` | 75 at $1.57 vs 73 at $1.90 | Prefer Luna unless Terra's lower tokens/runtime matter. |
+| Terra `max` vs Luna `max` | 77 at $2.76 vs 75 at $1.57 | Terra is a capability bridge, not the cost default. |
+| Sol `none` vs Luna `medium` | 58 at $1.40 vs 59 at $0.47 | Prefer Luna `medium`. |
+
+This matrix makes Luna the center of coding cost-to-correct routing. Intermediate Terra routes are
+primarily runtime/token-volume alternatives; Terra `max` establishes the only measured new Terra
+quality point between Luna `max` and Sol.
+
 ## Broader Intelligence Index
 
 This benchmark mixes agentic work, coding, science, knowledge, and long-context reasoning. Use it
@@ -125,8 +155,8 @@ for non-coding routing support, not as a substitute for the Codex matrix.
 `—` means the exact score was not used from a verified source in this revision; do not interpolate.
 Artificial Analysis reports max cost per task of $1.04 for Sol, $0.55 for Terra, and $0.21 for
 Luna. It reports Luna and Sol effort configurations on the broad intelligence/cost Pareto frontier,
-with Terra dominated there. That statement is benchmark-specific: Terra remains highly competitive
-in the Codex coding-agent matrix.
+with Terra dominated there. That statement is benchmark-specific. In the Codex coding matrix,
+Terra's intermediate routes can reduce runtime and token volume, while Terra `max` reaches index 77.
 
 Selected full-index evaluation bills illustrate effort cost growth, but are not per-task figures:
 
@@ -142,13 +172,39 @@ Selected full-index evaluation bills illustrate effort cost growth, but are not 
 | Luna `xhigh` | 49 | $479.37 |
 | Luna `max` | 51 | $870.30 |
 
-## Secondary and conditional models
+## GPT-5.4 Mini bounded-worker evidence
+
+OpenAI positions GPT-5.4 Mini for targeted edits, codebase navigation, debugging loops, computer
+use, and subagents. It costs $0.75/M input, $0.075/M cached input, and $4.50/M output, with a 400K
+context window. Those token prices are 25% below Luna's, but Mini is materially weaker on hard
+terminal and long-context evaluations.
+
+JetBrains evaluated Codex with GPT-5.4 Mini on repository tasks:
+
+| Ecosystem | Mini `low` solve / median cost / latency | Mini `medium` solve / median cost / latency |
+|---|---|---|
+| Weighted total | 35.1% / $0.0650 / 137.82s | 39.9% / $0.1387 / 170.40s |
+| Java | 40.4% / $0.0615 / 78.02s | 43.9% / $0.1292 / 124.11s |
+| C# | 51.6% / $0.0580 / 87.86s | 62.6% / $0.1152 / 142.95s |
+| Python | 14.8% / $0.0766 / 308.43s | 20.2% / $0.1724 / 297.72s |
+
+JetBrains selected `medium` because its solve-rate improvement mattered more operationally than
+`low`'s lower attempt cost. Therefore route `low` to mechanical work with cheap verification and
+`medium` to normal bounded implementation. Do not estimate independent retries by simply dividing
+median attempt cost by aggregate solve rate; failures can correlate by task difficulty.
+
+At `xhigh`, OpenAI reports Mini at 54.4% on SWE-Bench Pro versus 57.7% for full GPT-5.4, but 60.0%
+versus 75.1% on Terminal-Bench 2.0. Artificial Analysis measured Mini `xhigh` producing 220M output
+tokens across its Intelligence Index evaluation. These results argue for changing model rather than
+routinely raising Mini to `xhigh`.
+
+## Comparison and conditional models
 
 | Model | Current role |
 |---|---|
 | GPT-5.5 | Compatibility/comparison when GPT-5.6 is unavailable. Same token price as Sol but weaker in current published family comparisons. |
 | GPT-5.4 | Compatibility lane at Terra's token price. |
-| GPT-5.4 Mini | Older low-cost lane; GPT-5.6 Luna is the primary current family route. |
+| GPT-5.4 Mini | Active narrow worker: `low` for mechanical/scouting work and `medium` for bounded implementation. |
 | GPT-5.3-Codex | Codex code review currently uses it; that product choice is not a universal local-work default. |
 | GPT-5.3-Codex-Spark | Research preview for rapid focused iteration; credit rates are not final. |
 | GPT-5.5 Cyber | Trusted Access/Daybreak only; four times GPT-5.5's Codex credit rates and intended for advanced authorized cyber work. |

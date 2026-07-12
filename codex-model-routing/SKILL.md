@@ -4,8 +4,8 @@ description: >-
   Use when choosing a Codex-selectable OpenAI model and reasoning effort for a task, or when routing
   Codex subagents, to minimize expected cost to correct verified completion. Covers GPT-5.6 Sol,
   Terra, and Luna across none through max effort; Codex coding-agent and general-task cost-per-task
-  evidence; stakes, reversibility, verification, context, latency, caching, escalation, legacy and
-  conditional models, and guarded ultra multi-agent use. Triggers when asked which Codex model or
+  evidence; the GPT-5.4 Mini bounded-worker lane; stakes, reversibility, verification, context,
+  latency, caching, escalation, conditional models, and guarded ultra multi-agent use. Triggers when asked which Codex model or
   effort to use, whether to escalate or down-route, how to assign a Codex worker, or how to control
   Codex model-routing cost.
 ---
@@ -38,19 +38,22 @@ rate card when availability or pricing affects the decision.
 6. **Escalate on outcomes.** Failed verification, repeated correction, wandering, or context loss
    justify escalation. Model self-confidence does not.
 
-## The primary family
+## Configuration frontier
 
 OpenAI defines Luna, Terra, and Sol as durable capability tiers. They overlap substantially once
 effort changes, so they are not rigid task classes.
 
 | Tier | Start here when | Move away when |
 |---|---|---|
-| **Luna** | Cost or latency matters; work is recoverable or well verified. `medium` through `max` can handle substantive bounded coding, not just mechanical extraction. | The expected retries erase its price advantage, long-context retrieval quality matters, or ambiguity/stakes demand stronger judgment. |
-| **Terra** | Balanced Codex-native implementation, everyday agent work, or Free/Go availability. It is a serious frontier coding lane, not merely a small model. | Luna reaches the required quality more cheaply, or Sol's higher first-pass success is worth the premium. |
-| **Sol** | Ambiguous architecture, difficult debugging, long-horizon work, weak verifiers, expensive failure, or final judgment. | The task is bounded and a Luna/Terra route clears the quality bar. |
+| **Luna** | Default cost-to-correct family. Use `low` for cheap direct work, `medium`/`high` for routine verified coding, and `xhigh`/`max` for hard bounded work. | Verification is weak, failure is expensive, or runtime/token volume matters more than API cost. |
+| **Terra** | A measured intermediate configuration is faster or uses fewer tokens than the neighboring Luna route, Free/Go makes it the available tier, or `max` is the desired bridge between Luna and Sol. | A Luna configuration meets the quality bar more cheaply, or Sol is justified by stakes. |
+| **Sol** | Ambiguous architecture, difficult debugging, long-horizon work, weak verifiers, expensive failure, or final judgment. | The task is bounded and a cheaper configuration clears the quality bar. |
 
 Do not force a Haiku/Sonnet/Opus analogy. It is useful shorthand for price bands, not an empirical
 one-to-one mapping.
+
+Artificial Analysis currently places Luna and Sol, not Terra, on its broad intelligence/cost Pareto
+frontier. Do not turn product-tier names such as "balanced" into routing evidence.
 
 ## Current coding frontier
 
@@ -60,18 +63,65 @@ high-value anchors are:
 | Configuration | Coding index | Measured cost/task | Use as |
 |---|---:|---:|---|
 | Luna `medium` | 59 | $0.47 | cheap bounded attempt |
-| Terra `medium` | 64 | $0.90 | routine implementation |
+| Terra `medium` | 64 | $0.90 | lower-runtime/token alternative |
 | Luna `high` | 68 | $0.96 | stronger cheap worker |
 | Luna `xhigh` | 71 | $1.26 | quality/value route |
-| Terra `high` | 72 | $1.59 | balanced substantive route |
-| Terra `xhigh` | 73 | $1.90 | harder bounded work |
+| Terra `high` | 72 | $1.59 | faster near-Luna-xhigh route |
+| Terra `xhigh` | 73 | $1.90 | token-efficient near-Luna-max route |
 | Luna `max` | 75 | $1.57 | high capability with extra tokens |
-| Terra `max` | 77 | $2.76 | strong coding default for hard work |
+| Terra `max` | 77 | $2.76 | capability bridge below Sol |
 | Sol `max` | 80 | $7.08 | quality ceiling before multi-agent |
 
 These are benchmark averages, not quotes for a user's task. Read the complete matrix and caveats in
 the empirical reference. In particular, current `$0.00` costs shown for Sol `low` through `xhigh`
 are defective/missing data, not free inference.
+
+### Apply measured dominance first
+
+- Prefer Luna `low` over Luna `none`: it measured both cheaper and stronger.
+- Prefer Luna `medium` over Terra `low`: it measured cheaper and stronger.
+- Prefer Luna `high` over Terra `medium` when quality matters; their measured task costs are close.
+- Prefer Luna `max` over Terra `high` or `xhigh` when cost and coding score dominate. Choose those
+  Terra routes only when their shorter runtime or lower token volume is itself valuable.
+- Use Terra `max` as the measured capability bridge: it scores above Luna `max` and costs far less
+  than Sol `max`.
+- Prefer Luna `medium` over Sol `none` for coding; it measured stronger at one-third the task cost.
+
+Do not infer unknown Sol costs from `$0.00` cells. If a Sol route below `max` is under consideration,
+select it because first-pass quality or stakes justify it, not because its comparative cost is known.
+
+## Task routing matrix
+
+Use the cheapest column only when failure is detectable and cleanup is cheap. Use the strong column
+when verification is weak, retry latency is expensive, or a bad attempt can cause damage.
+
+| Task shape | Cheapest sensible route | Normal route | Strong route |
+|---|---|---|---|
+| Exact extraction or reformatting | Luna `low` | Luna `low` | Luna `medium` |
+| Repository search and inventory | Mini `low` | Luna `low` | Luna `medium` |
+| Read-only research worker | Mini `low` | Luna `low` | Terra `medium` for synthesis |
+| Mechanical rename or repetitive edit | Mini `medium` | Luna `low` | Luna `medium` |
+| Small patch with deterministic tests | Mini `medium` | Luna `medium` | Luna `high` |
+| Bounded bug fix or test writing | Luna `medium` | Luna `high` | Luna `xhigh` |
+| Routine refactor | Luna `medium` | Luna `high` | Luna `xhigh` |
+| Multi-file implementation | Luna `high` | Luna `xhigh` | Luna `max` |
+| Difficult bounded algorithm | Luna `xhigh` | Luna `max` | Terra `max` |
+| Complex debugging | Luna `xhigh` | Luna `max` | Terra `max` or Sol `high` |
+| Terminal-heavy autonomous work | Luna `high` | Luna `xhigh`/`max` | Terra `max` or Sol |
+| Runtime-sensitive agent work | Luna `medium` | Terra `medium` | Terra `high` |
+| Token-volume-sensitive work | Terra `medium` | Terra `high` | Terra `xhigh` |
+| Long-horizon implementation | Luna `max` | Terra `max` | Sol `high`/`max` |
+| Architecture or ambiguous requirements | Luna `max` | Terra `max` | Sol `high`/`max` |
+| Weak or subjective verifier | Terra `max` | Sol `high` | Sol `max` |
+| Irreversible migration or expensive cleanup | Terra `max` | Sol `high` | Sol `max` |
+| Computer/tool operation | Luna `high` | Luna `max` or Terra `max` | Sol `high` |
+| Authorized security reasoning | Luna `max` | Terra `max` | Sol `high`/`max` |
+| Final synthesis of conflicting worker findings | Luna `max` | Terra `max` | Sol `high` |
+
+For non-coding professional work, use the same verifier/stakes logic but consult the broad
+Intelligence Index rather than assuming the coding matrix transfers. Luna and Sol currently define
+that measured cost/intelligence frontier; Terra requires a latency, token-use, availability, or
+workload-specific reason.
 
 ## Pick effort by marginal return
 
@@ -137,10 +187,24 @@ Model routing never grants delegation authority.
 
 Use `max` as the normal single-agent ceiling.
 
-## Secondary and conditional lanes
+## GPT-5.4 Mini worker lane
 
-- Keep GPT-5.5, GPT-5.4, and GPT-5.4 Mini only for compatibility, explicit comparison, or accounts
-  where GPT-5.6 is unavailable.
+GPT-5.4 Mini remains a live economical option rather than a generic legacy fallback. It is cheaper
+per token than Luna but has a 400K context limit and lower hard-agent capability.
+
+- Use Mini `low` for search, inventory, large-file review, mechanical edits, and other work with a
+  cheap deterministic verifier.
+- Use Mini `medium` as the normal bounded subagent or targeted implementation route. In JetBrains'
+  repository-task evaluation, `medium` solved more tasks than `low` across Java, C#, and Python.
+- Normally switch to Luna or Terra instead of raising Mini to `high` or `xhigh`; require direct
+  workload evidence for those settings.
+- Do not use Mini as the sole authority for architecture, weakly verified work, long-horizon
+  implementation, or expensive-to-clean-up failures.
+
+## Comparison and conditional lanes
+
+- GPT-5.5 and GPT-5.4 are compatibility, explicit-comparison, or workload-proven exception lanes.
+  Current evidence does not make either a general default over GPT-5.6.
 - Codex code review currently uses GPT-5.3-Codex; do not generalize that product routing into a
   default for local work.
 - GPT-5.3-Codex-Spark is a preview latency lane with non-final credit pricing. Use it only when the
@@ -151,10 +215,13 @@ Use `max` as the normal single-agent ceiling.
 ## Quick reference
 
 ```text
-cheap + verified      → Luna medium/high
-routine coding        → Terra medium/high or Luna high/xhigh
-hard bounded coding   → Terra xhigh/max or Luna max
-ambiguous/high stakes → Sol high/xhigh/max (cost data permitting)
+search/mechanical     → GPT-5.4 Mini low or Luna low
+bounded worker        → GPT-5.4 Mini medium or Luna medium
+routine coding        → Luna medium/high
+hard bounded coding   → Luna xhigh/max
+runtime/token bound   → compare Terra medium/high/xhigh
+bridge below Sol      → Terra max
+ambiguous/high stakes → Sol high/xhigh/max
 quality ceiling       → Sol max
 multi-agent ultra     → explicit opt-in only; exactly 4 agents; no other workers
 
@@ -162,3 +229,13 @@ escalate on failed verification, repeated correction, wandering, or context loss
 never escalate on self-reported confidence
 never treat missing $0.00 benchmark cells as free
 ```
+
+## Evidence discipline
+
+- Use disclosed, task-relevant independent benchmarks before general aggregate scores.
+- Use official OpenAI results for capabilities and product facts, while accounting for vendor
+  selection bias.
+- Use local or personal benchmark runs as exploratory evidence only. They can motivate a targeted
+  evaluation but cannot establish a default route.
+- Recheck the dated [empirical basis](references/empirical-basis.md) when model snapshots or prices
+  may have changed.

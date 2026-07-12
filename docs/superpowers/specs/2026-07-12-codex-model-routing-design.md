@@ -8,7 +8,10 @@ Create `codex-model-routing`, a Codex-native counterpart to `claude-model-routin
 
 The main routing family is GPT-5.6 Sol, Terra, and Luna. Cover every supported reasoning level: `none`, `low`, `medium`, `high`, `xhigh`, and `max`. Cover `ultra` as a separately guarded multi-agent mode rather than another ordinary effort level.
 
-Keep older and conditional Codex choices in a dated secondary section, including GPT-5.5, GPT-5.4, GPT-5.4 Mini, GPT-5.3-Codex, GPT-5.3-Codex-Spark, and GPT-5.5 Cyber. Do not let these legacy or entitlement-dependent choices drive the primary decision tree.
+Keep older and conditional Codex choices in a dated comparison section, including GPT-5.5,
+GPT-5.4, GPT-5.4 Mini, GPT-5.3-Codex, GPT-5.3-Codex-Spark, and GPT-5.5 Cyber. GPT-5.4 Mini remains
+a live economical route for narrow bounded work and subagents; the others require compatibility,
+entitlement, or workload-specific evidence before displacing a GPT-5.6 route.
 
 ## Skill Structure
 
@@ -44,11 +47,29 @@ Do not encode a universal rule to raise effort before changing model. Compare th
 
 Treat Sol, Terra, and Luna as OpenAI's durable capability tiers, not as exact equivalents to Anthropic models.
 
-- Luna is the low-cost, high-speed tier, but high effort can make it suitable for substantive bounded work.
-- Terra is the balanced Codex workhorse and a strong coding lane. It remains important despite not occupying every broad intelligence/cost Pareto frontier.
-- Sol is the flagship tier for ambiguous, failure-costly, long-horizon, or unusually difficult work.
+- Luna is the cost-to-correct center. Its measured `low` through `max` routes cover cheap scouting
+  through hard verified coding.
+- Terra is not the automatic workhorse. Use intermediate Terra configurations when their lower
+  runtime or token volume matters, and use Terra `max` as the measured capability bridge between
+  Luna `max` and Sol.
+- Sol is the flagship for ambiguity, weak verification, expensive failure, and the quality ceiling.
 
-Use Codex coding-agent evidence as the primary benchmark for coding routes. Current measured examples include Sol `max` at index 80 and $7.08 per task, Terra `max` at 77 and $2.76, and Luna `max` at 75 and $1.57. Preserve lower-effort rows as well. Treat missing or defective values, including currently displayed `$0.00` Sol costs, as unavailable rather than free.
+Use Codex coding-agent evidence as the primary benchmark for coding routes. Apply configuration-level
+dominance before tier labels: Luna `low` dominates Luna `none`; Luna `medium` dominates Terra `low`;
+Luna `max` beats Terra `high` and `xhigh` on both measured score and cost, while those Terra routes
+remain faster and use fewer tokens. Terra `max` is the only measured Terra route that establishes a
+new coding-quality point between Luna and Sol. Treat missing or defective values, including currently
+displayed `$0.00` Sol costs, as unavailable rather than free.
+
+For general intelligence, Artificial Analysis reports Luna and Sol, not Terra, on the cost/intelligence
+Pareto frontier. Do not silently convert OpenAI's product positioning into an empirical routing rule.
+
+Treat GPT-5.4 Mini `low` as a mechanical/scouting route and `medium` as the normal bounded worker.
+JetBrains measured higher solve rates for `medium` in Java, C#, and Python and selected it operationally.
+Use `high` or `xhigh` only with workload evidence; normally switch to Luna or Terra instead.
+
+Treat local benchmark results as exploratory or "fun" evidence only. They may suggest a benchmark to
+run, but cannot establish a default route.
 
 Keep Artificial Analysis Intelligence Index evidence separate from Codex coding-agent evidence. Label each value as independently measured, estimated, OpenAI-reported, or unavailable.
 

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build and expose a validated `codex-model-routing` skill that routes Codex-selectable OpenAI model and effort configurations by expected cost to correct, verified completion.
+**Goal:** Build and expose a validated `codex-model-routing` skill that routes Codex-selectable OpenAI model and effort configurations by expected cost to correct, verified completion, using the full GPT-5.6 configuration frontier plus the evidence-backed GPT-5.4 Mini worker lane.
 
 **Architecture:** Keep the reusable workflow and safety invariants in a concise `SKILL.md`, and put dated prices, benchmark matrices, availability, and source links in `references/empirical-basis.md`. Generate Codex UI metadata with the skill-creator tooling, update the repository index, and expose the repository-owned skill through a user-level symlink.
 
@@ -17,13 +17,13 @@
 - Create: `codex-model-routing/agents/openai.yaml`
 - Create: `codex-model-routing/references/`
 
-- [ ] **Step 1: Confirm the destination is absent and the worktree is clean**
+- [x] **Step 1: Confirm the destination is absent and the worktree is clean**
 
 Run: `test ! -e codex-model-routing && git status --short`
 
 Expected: exit 0 and no output.
 
-- [ ] **Step 2: Initialize the skill with generated interface metadata**
+- [x] **Step 2: Initialize the skill with generated interface metadata**
 
 Run:
 
@@ -38,7 +38,7 @@ python /Users/will/.codex/skills/.system/skill-creator/scripts/init_skill.py cod
 
 Expected: a new `codex-model-routing` directory containing `SKILL.md`, `agents/openai.yaml`, and `references/`.
 
-- [ ] **Step 3: Verify the generated file set**
+- [x] **Step 3: Verify the generated file set**
 
 Run: `find codex-model-routing -maxdepth 2 -type f -print | sort`
 
@@ -56,7 +56,7 @@ The empty `references/` directory will not appear in `find -type f` output.
 **Files:**
 - Create: `codex-model-routing/references/empirical-basis.md`
 
-- [ ] **Step 1: Add source hierarchy and evidence labels**
+- [x] **Step 1: Add source hierarchy and evidence labels**
 
 Write sections that state:
 
@@ -69,23 +69,25 @@ Write sections that state:
 - Keep Codex coding-agent evidence separate from the broader Intelligence Index.
 ```
 
-- [ ] **Step 2: Add the GPT-5.6 capability, pricing, and availability tables**
+- [x] **Step 2: Add the GPT-5.6 capability, pricing, and availability tables**
 
 Include Sol, Terra, and Luna; `none` through `max`; current API and Codex-credit prices; 1.05M API context; plan availability; CLI/app minimum versions; the 272K long-context price cliff; 1.25x cache-write cost; and 90% cache-read discount.
 
-- [ ] **Step 3: Add the Codex coding-agent matrix**
+- [x] **Step 3: Add the Codex coding-agent matrix**
 
 Record the published rows for Sol, Terra, and Luna across available effort levels, including index, benchmark subscores, task cost, runtime, turns, and token use. Mark the current `$0.00` Sol cost rows as defective/unavailable rather than zero-cost.
 
-- [ ] **Step 4: Add the broader Intelligence Index matrix and interpretation**
+- [x] **Step 4: Add the broader Intelligence Index matrix and interpretation**
 
 Record the published effort-level scores and cost evidence needed to explain the Luna/Sol Pareto frontier, Terra's broad-index position, and why that result does not erase Terra's Codex-specific strength.
 
-- [ ] **Step 5: Add legacy and conditional lanes**
+- [x] **Step 5: Add comparison and conditional lanes**
 
-Document GPT-5.5, GPT-5.4, GPT-5.4 Mini, GPT-5.3-Codex, Spark, and GPT-5.5 Cyber as dated secondary choices. State that Spark pricing is not final, code review uses GPT-5.3-Codex, and Cyber is entitlement-dependent.
+Document GPT-5.4 Mini `low`/`medium` as active bounded-worker choices. Document GPT-5.5, GPT-5.4,
+GPT-5.3-Codex, Spark, and GPT-5.5 Cyber as dated conditional choices. State that Spark pricing is
+not final, code review uses GPT-5.3-Codex, and Cyber is entitlement-dependent.
 
-- [ ] **Step 6: Add direct source links and verify them textually**
+- [x] **Step 6: Add direct source links and verify them textually**
 
 Run: `rg -n 'https://(openai.com|help.openai.com|developers.openai.com|artificialanalysis.ai)' codex-model-routing/references/empirical-basis.md`
 
@@ -96,7 +98,7 @@ Expected: source links for every numeric table and product-control claim.
 **Files:**
 - Modify: `codex-model-routing/SKILL.md`
 
-- [ ] **Step 1: Replace generated frontmatter**
+- [x] **Step 1: Replace generated frontmatter**
 
 Use only:
 
@@ -108,7 +110,7 @@ description: >-
 ---
 ```
 
-- [ ] **Step 2: Add the core decision procedure**
+- [x] **Step 2: Add the core decision procedure**
 
 Define the objective as:
 
@@ -118,15 +120,17 @@ expected total cost = measured cost per attempt x expected attempts to verified 
 
 Require routing by task shape, stakes, reversibility, verifier strength, coding-agent evidence, general-task evidence, latency, context, caching, and availability. Explicitly reject self-reported confidence and the unconditional rule to raise effort before switching tiers.
 
-- [ ] **Step 3: Add primary-family guidance**
+- [x] **Step 3: Add configuration-frontier guidance**
 
-Describe Luna as the cheap/fast tier with substantive high-effort capability, Terra as the balanced Codex-native workhorse, and Sol as the flagship for ambiguity and expensive failure. Provide a compact configuration frontier grounded in the empirical reference rather than a rigid one-model-per-task ladder.
+Describe Luna as the cost-to-correct center, Terra as a runtime/token-sensitive alternative and `max`
+bridge, and Sol as the flagship for ambiguity and expensive failure. Include explicit dominated-route
+rules and a task matrix. Do not call Terra the automatic workhorse.
 
-- [ ] **Step 4: Add escalation and cost controls**
+- [x] **Step 4: Add escalation and cost controls**
 
 Cover observable failure signals, context-price cliffs, cache economics, live verification for Fast-mode pricing, legacy and conditional lanes, and the rule that benchmark task cost is comparative rather than a production quote.
 
-- [ ] **Step 5: Add the hard delegation invariant**
+- [x] **Step 5: Add the hard delegation invariant**
 
 Include these exact requirements:
 
@@ -142,7 +146,7 @@ Include these exact requirements:
 - Prohibit 16-agent or otherwise expanded `ultra` configurations.
 ```
 
-- [ ] **Step 6: Add a quick reference and reference link**
+- [x] **Step 6: Add a quick reference and reference link**
 
 End with a compact decision table and a direct relative link to `[references/empirical-basis.md](references/empirical-basis.md)`.
 
@@ -153,7 +157,7 @@ End with a compact decision table and a direct relative link to `[references/emp
 - Modify: `README.md`
 - Create: `/Users/will/.agents/skills/codex-model-routing` symlink
 
-- [ ] **Step 1: Read metadata requirements and regenerate metadata**
+- [x] **Step 1: Read metadata requirements and regenerate metadata**
 
 Run:
 
@@ -167,17 +171,17 @@ python /Users/will/.codex/skills/.system/skill-creator/scripts/generate_openai_y
 
 Expected: `codex-model-routing/agents/openai.yaml` is regenerated successfully.
 
-- [ ] **Step 2: Add the skill to the README table**
+- [x] **Step 2: Add the skill to the README table**
 
 Add a row after `claude-model-routing` describing GPT-5.6 model/effort routing, cost to verified completion, empirical cost-per-task evidence, and the four-agent delegation safeguard.
 
-- [ ] **Step 3: Create the discovery symlink**
+- [x] **Step 3: Create the discovery symlink**
 
 Run: `ln -s /Users/will/Documents/Github/willsarg/agent-skills/codex-model-routing /Users/will/.agents/skills/codex-model-routing`
 
 Expected: the symlink is created without replacing any existing path.
 
-- [ ] **Step 4: Verify the symlink target**
+- [x] **Step 4: Verify the symlink target**
 
 Run: `test "$(readlink /Users/will/.agents/skills/codex-model-routing)" = '/Users/will/Documents/Github/willsarg/agent-skills/codex-model-routing'`
 
@@ -191,13 +195,13 @@ Expected: exit 0.
 - Verify: `codex-model-routing/agents/openai.yaml`
 - Verify: `README.md`
 
-- [ ] **Step 1: Run the official skill validator**
+- [x] **Step 1: Run the official skill validator**
 
 Run: `python /Users/will/.codex/skills/.system/skill-creator/scripts/quick_validate.py codex-model-routing`
 
 Expected: validation success.
 
-- [ ] **Step 2: Run structural and placeholder checks**
+- [x] **Step 2: Run structural and placeholder checks**
 
 Run:
 
@@ -208,7 +212,7 @@ git diff --check
 
 Expected: no placeholder matches and no whitespace errors.
 
-- [ ] **Step 3: Audit every explicit requirement**
+- [x] **Step 3: Audit every explicit requirement**
 
 Run:
 
@@ -218,13 +222,13 @@ rg -n 'Sol|Terra|Luna|none|low|medium|high|xhigh|max|ultra|four|Do not spawn sub
 
 Expected: every required concept appears in the appropriate workflow or reference section.
 
-- [ ] **Step 4: Inspect the final diff and repository status**
+- [x] **Step 4: Inspect the final diff and repository status**
 
 Run: `git diff --stat && git diff -- codex-model-routing README.md && git status --short`
 
 Expected: only the planned skill and README changes are present.
 
-- [ ] **Step 5: Commit the implementation**
+- [x] **Step 5: Commit the implementation**
 
 Run:
 
